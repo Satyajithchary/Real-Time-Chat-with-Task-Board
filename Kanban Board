@@ -1,0 +1,45 @@
+// KanbanBoard.js
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:5000'); // replace with your server URL
+
+const KanbanBoard = () => {
+  const { room } = useParams();
+  const [tasks, setTasks] = useState([]);
+
+  useEffect(() => {
+    socket.emit('joinRoom', { room });
+
+    socket.on('taskUpdate', (updatedTasks) => {
+      setTasks(updatedTasks);
+    });
+
+    return () => {
+      socket.emit('leaveRoom', { room });
+      socket.off();
+    };
+  }, [room, tasks]);
+
+  const createTask = (taskText) => {
+    socket.emit('createTask', { room, text: taskText });
+  };
+
+  // similar functions for edit, move, delete tasks
+
+  return (
+    <div>
+      <div>
+        {tasks.map((task, index) => (
+          <div key={index}>{task.text}</div>
+        ))}
+      </div>
+      <input type="text" />
+      <button onClick={() => createTask('New Task')}>Create Task</button>
+      {/* Additional buttons and inputs for editing, moving, deleting tasks */}
+    </div>
+  );
+};
+
+export default KanbanBoard;
