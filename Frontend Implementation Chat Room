@@ -1,0 +1,48 @@
+// ChatRoom.js
+import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
+import io from 'socket.io-client';
+
+const socket = io('http://localhost:5000'); // replace with your server URL
+
+const ChatRoom = () => {
+  const { room } = useParams();
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState('');
+
+  useEffect(() => {
+    socket.emit('joinRoom', { room });
+
+    socket.on('message', (message) => {
+      setMessages([...messages, message]);
+    });
+
+    return () => {
+      socket.emit('leaveRoom', { room });
+      socket.off();
+    };
+  }, [room, messages]);
+
+  const sendMessage = () => {
+    socket.emit('sendMessage', { room, text: newMessage });
+    setNewMessage('');
+  };
+
+  return (
+    <div>
+      <div>
+        {messages.map((msg, index) => (
+          <div key={index}>{msg.text}</div>
+        ))}
+      </div>
+      <input
+        type="text"
+        value={newMessage}
+        onChange={(e) => setNewMessage(e.target.value)}
+      />
+      <button onClick={sendMessage}>Send</button>
+    </div>
+  );
+};
+
+export default ChatRoom;
