@@ -1,0 +1,3 @@
+# Initialize Node.js project
+npm init -y
+npm install express mongoose jsonwebtoken socket.io
